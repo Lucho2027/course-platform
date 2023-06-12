@@ -16,7 +16,6 @@
         class="prose mr-4 p-8 bg-white rounded-md min-w-[20ch] max-w-[30ch] flex flex-col"
       >
         <h3>Chapters</h3>
-        <!-- All the lessons for the course listed here -->
         <div class="space-y-1  mb-4 flex flex-col"
         v-for="chapter in chapters"
         :key="chapter.slug">
@@ -42,6 +41,7 @@
   </div>
 </template>
 <script setup>
-const {chapters} = useCourse()
+const { chapters } = useCourse();
+
 </script>
 
