@@ -20,8 +20,8 @@
 </div>
 <VideoPlayer v-if="lesson.videoId" :video-id="lesson.videoId"/>
 <p>{{ lesson.text }}</p>
+<LessonCompleteButton :model-value="isLessonComplete" @update:model-value="toggleComplete"/>
 </div>
-
 </template>
 <script setup>
 const course = useCourse();
@@ -42,5 +42,34 @@ const title = computed(() =>{
 useHead({
     title:`${title.value}`
 });
+
+
+const progress = useState('progress', () => {
+    return []
+});
+
+const isLessonComplete = computed(() =>{
+    const progressArr = progress.value;
+    const chapterArr = chapter.value.number;
+    const lessonNumber = lesson.value.number;
+    if(!progressArr[chapterArr - 1]){
+        return false
+    }
+    if(!progressArr[chapterArr - 1][lessonNumber - 1]){
+        return false
+    }
+    return progressArr[chapterArr - 1][lessonNumber - 1]
+})
+
+const toggleComplete = () =>{
+    const progressArr = progress.value;
+    const chapterArr = chapter.value.number;
+    const lessonNumber = lesson.value.number;
+    if(!progressArr[chapterArr - 1]){
+        progressArr[chapterArr - 1] =[];
+    }
+    progressArr[chapterArr - 1][lessonNumber - 1]= !isLessonComplete.value
+
+}
 </script>
 
