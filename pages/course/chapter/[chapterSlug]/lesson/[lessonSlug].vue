@@ -1,78 +1,104 @@
 <template>
-<div>
+  <div>
     <p class="mt-0 uppercase font-bold text-slate-400 mb-1">
-        Chapter {{ chapter.number }} - Lesson {{ lesson.number }}
+      Chapter {{ chapter.number }} - Lesson {{ lesson.number }}
     </p>
     <h2 class="my-0">{{ lesson.title }}</h2>
-<div class="flex space-x-4 mt-2 mb-8">
-    <NuxtLink v-if="lesson.sourceUrl"
-     class="font-normal text-md text-gray-500"
-     :to="lesson.sourceUrl"
-     target="_blank">
+    <div class="flex space-x-4 mt-2 mb-8">
+      <NuxtLink
+        v-if="lesson.sourceUrl"
+        class="font-normal text-md text-gray-500"
+        :to="lesson.sourceUrl"
+        target="_blank"
+      >
         Download Source Code
-    </NuxtLink>
-    <NuxtLink v-if="lesson.downloadUrl"
-     class="font-normal text-md text-gray-500"
-     :to="lesson.downloadUrl"
-     target="_blank">
+      </NuxtLink>
+      <NuxtLink
+        v-if="lesson.downloadUrl"
+        class="font-normal text-md text-gray-500"
+        :to="lesson.downloadUrl"
+        target="_blank"
+      >
         Download Video
-    </NuxtLink>
-</div>
-<VideoPlayer v-if="lesson.videoId" :video-id="lesson.videoId"/>
-<p>{{ lesson.text }}</p>
+      </NuxtLink>
+    </div>
+    <VideoPlayer v-if="lesson.videoId" :video-id="lesson.videoId" />
+    <p>{{ lesson.text }}</p>
 
-<LessonCompleteButton :model-value="isLessonComplete" @update:model-value="throwMe"/>
-</div>
+    <LessonCompleteButton
+      :model-value="isLessonComplete"
+      @update:model-value="toggleComplete"
+    />
+  </div>
 </template>
 <script setup>
 const course = useCourse();
 const route = useRoute();
 
+definePageMeta({
+  validate({ params }) {
+    const course = useCourse();
+
+    const chapter = course.chapters.find((c) => c.slug === params.chapterSlug);
+    if (!chapter) {
+      return createError({
+        statusCode: 404,
+        message: "Chapter not found",
+      });
+    }
+    const lesson = chapter.lessons.find((l) => l.slug === params.lessonSlug);
+    if (!lesson) {
+      return createError({
+        statusCode: 404,
+        message: "Lesson not found",
+      });
+    }
+    return true;
+  },
+});
+
 const chapter = computed(() => {
-    return course.chapters.find((chapter) => chapter.slug === route.params.chapterSlug)
+  return course.chapters.find(
+    (chapter) => chapter.slug === route.params.chapterSlug
+  );
 });
 
-const lesson = computed(() =>{
-    return chapter.value.lessons.find((lesson) => lesson.slug === route.params.lessonSlug)
+const lesson = computed(() => {
+  return chapter.value.lessons.find(
+    (lesson) => lesson.slug === route.params.lessonSlug
+  );
 });
 
-const title = computed(() =>{
-    return`${lesson.value.title} - ${course.title}`
-})
+const title = computed(() => {
+  return `${lesson.value.title} - ${course.title}`;
+});
 
 useHead({
-    title:`${title.value}`
+  title: `${title.value}`,
 });
 
+const progress = useLocalStorage("progress", []);
 
-const progress = useLocalStorage('progress', []);
+const isLessonComplete = computed(() => {
+  const progressArr = progress.value;
+  const chapterArr = chapter.value.number;
+  const lessonNumber = lesson.value.number;
+  if (!progressArr[chapterArr - 1]) {
+    return false;
+  }
+  if (!progressArr[chapterArr - 1][lessonNumber - 1]) {
+    return false;
+  }
+  return progressArr[chapterArr - 1][lessonNumber - 1];
+});
 
-const isLessonComplete = computed(() =>{
-    const progressArr = progress.value;
-    const chapterArr = chapter.value.number;
-    const lessonNumber = lesson.value.number;
-    if(!progressArr[chapterArr - 1]){
-        return false
-    }
-    if(!progressArr[chapterArr - 1][lessonNumber - 1]){
-        return false
-    }
-    return progressArr[chapterArr - 1][lessonNumber - 1]
-})
-
-const toggleComplete = () =>{
-    const progressArr = progress.value;
-    const chapterArr = chapter.value.number;
-    const lessonNumber = lesson.value.number;
-    if(!progressArr[chapterArr - 1]){
-        progressArr[chapterArr - 1] =[];
-    }
-    progressArr[chapterArr - 1][lessonNumber - 1]= !isLessonComplete.value
-
-}
-const throwMe = () =>{
-    throw createError('YAYEET Yo shit be broke')
-
-}
+const toggleComplete = () => {
+  const progressArr = progress.value;
+  const chapterArr = chapter.value.number;
+  const lessonNumber = lesson.value.number;
+  if (!progressArr[chapterArr - 1]) {
+    progressArr[chapterArr - 1] = [];
+  }
+  progressArr[chapterArr - 1][lessonNumber - 1] = !isLessonComplete.value;
+};
 </script>
-
