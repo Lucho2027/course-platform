@@ -1,7 +1,6 @@
 <template>
-  <div
-    class="p-12 bg-gray-100 w-full h-full min-h-screen flex flex-col items-center"
-  >
+  
+  
     <div class="prose mb-12">
       <h1>
         <span class="font-medium">
@@ -35,13 +34,33 @@
       </div>
 
       <div class="prose p-12 bg-white rounded-md w-[65ch]">
+        <NuxtErrorBoundary>
         <NuxtPage  />
+        <template #error="{ error }">
+          <p>
+            Oh no, something went wrong with the lesson!
+            <code>{{ error }}</code>
+          </p>
+          <p>
+            <button
+              class="hover:cursor-pointer bg-gray-500 text-white font-bold py-1 px-3 rounded"
+              @click="resetError(error)"
+            >
+              Reset
+            </button>
+          </p>
+        </template>
+      </NuxtErrorBoundary>
       </div>
     </div>
-  </div>
+ 
 </template>
 <script setup>
 const { chapters } = useCourse();
+
+const resetError = (error) =>{
+  error.value = null;
+}
 
 </script>
 

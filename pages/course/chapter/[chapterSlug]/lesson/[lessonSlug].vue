@@ -21,7 +21,7 @@
 <VideoPlayer v-if="lesson.videoId" :video-id="lesson.videoId"/>
 <p>{{ lesson.text }}</p>
 
-<LessonCompleteButton :model-value="isLessonComplete" @update:model-value="toggleComplete"/>
+<LessonCompleteButton :model-value="isLessonComplete" @update:model-value="throwMe"/>
 </div>
 </template>
 <script setup>
@@ -68,6 +68,10 @@ const toggleComplete = () =>{
         progressArr[chapterArr - 1] =[];
     }
     progressArr[chapterArr - 1][lessonNumber - 1]= !isLessonComplete.value
+
+}
+const throwMe = () =>{
+    throw createError('YAYEET Yo shit be broke')
 
 }
 </script>
