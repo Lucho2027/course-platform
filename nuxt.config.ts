@@ -11,8 +11,8 @@ export default defineNuxtConfig({
   },
   supabase: {
     redirect: false,
-    // redirectOptions: {
-    //   exclude: ["/"],
-    // },
+    // // redirectOptions: {
+    // //   exclude: ["/"],
+    // // },
   },
 });
