@@ -1,7 +1,7 @@
 <template>
   <div>
     <p class="mt-0 uppercase font-bold text-slate-400 mb-1">
-      Chapter {{ chapter.number }} - Lesson {{ lesson.number }}
+      Lesson {{ chapter.number }} - {{ lesson.number }}
     </p>
     <h2 class="my-0">{{ lesson.title }}</h2>
     <div class="flex space-x-4 mt-2 mb-8">
@@ -9,7 +9,6 @@
         v-if="lesson.sourceUrl"
         class="font-normal text-md text-gray-500"
         :to="lesson.sourceUrl"
-        target="_blank"
       >
         Download Source Code
       </NuxtLink>
@@ -17,20 +16,19 @@
         v-if="lesson.downloadUrl"
         class="font-normal text-md text-gray-500"
         :to="lesson.downloadUrl"
-        target="_blank"
       >
         Download Video
       </NuxtLink>
     </div>
-    <VideoPlayer v-if="lesson.videoId" :video-id="lesson.videoId" />
+    <VideoPlayer v-if="lesson.videoId" :videoId="lesson.videoId" />
     <p>{{ lesson.text }}</p>
-
     <LessonCompleteButton
       :model-value="isLessonComplete"
       @update:model-value="toggleComplete"
     />
   </div>
 </template>
+
 <script setup>
 const course = useCourse();
 const route = useRoute();
@@ -41,8 +39,9 @@ definePageMeta({
       const course = useCourse();
 
       const chapter = course.chapters.find(
-        (c) => c.slug === params.chapterSlug
+        (chapter) => chapter.slug === params.chapterSlug
       );
+
       if (!chapter) {
         return abortNavigation(
           createError({
@@ -51,7 +50,11 @@ definePageMeta({
           })
         );
       }
-      const lesson = chapter.lessons.find((l) => l.slug === params.lessonSlug);
+
+      const lesson = chapter.lessons.find(
+        (lesson) => lesson.slug === params.lessonSlug
+      );
+
       if (!lesson) {
         return abortNavigation(
           createError({
@@ -80,33 +83,30 @@ const lesson = computed(() => {
 const title = computed(() => {
   return `${lesson.value.title} - ${course.title}`;
 });
-
 useHead({
-  title: `${title.value}`,
+  title,
 });
 
 const progress = useLocalStorage("progress", []);
 
 const isLessonComplete = computed(() => {
-  const progressArr = progress.value;
-  const chapterArr = chapter.value.number;
-  const lessonNumber = lesson.value.number;
-  if (!progressArr[chapterArr - 1]) {
+  if (!progress.value[chapter.value.number - 1]) {
     return false;
   }
-  if (!progressArr[chapterArr - 1][lessonNumber - 1]) {
+
+  if (!progress.value[chapter.value.number - 1][lesson.value.number - 1]) {
     return false;
   }
-  return progressArr[chapterArr - 1][lessonNumber - 1];
+
+  return progress.value[chapter.value.number - 1][lesson.value.number - 1];
 });
 
 const toggleComplete = () => {
-  const progressArr = progress.value;
-  const chapterArr = chapter.value.number;
-  const lessonNumber = lesson.value.number;
-  if (!progressArr[chapterArr - 1]) {
-    progressArr[chapterArr - 1] = [];
+  if (!progress.value[chapter.value.number - 1]) {
+    progress.value[chapter.value.number - 1] = [];
   }
-  progressArr[chapterArr - 1][lessonNumber - 1] = !isLessonComplete.value;
+
+  progress.value[chapter.value.number - 1][lesson.value.number - 1] =
+    !isLessonComplete.value;
 };
 </script>
