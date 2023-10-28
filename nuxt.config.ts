@@ -9,4 +9,10 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  supabase: {
+    redirect: false,
+    // redirectOptions: {
+    //   exclude: ["/"],
+    // },
+  },
 });
