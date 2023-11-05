@@ -24,10 +24,10 @@
             v-for="(lesson, index) in chapter.lessons"
             :key="lesson.slug"
             class="flex flex-row space-x-1 no-underline prose-sm font-normal py-1 px-4 -mx-4"
-            :to="lesson.path"
+            :to="lesson.slug"
             :class="{
-              'text-blue-500': lesson.path === $route.fullPath,
-              'text-gray-600': lesson.path !== $route.fullPath,
+              'text-blue-500': lesson.slug === $route.fullPath,
+              'text-gray-600': lesson.slug !== $route.fullPath,
             }"
           >
             <span class="text-gray-500">{{ index + 1 }}.</span>
@@ -64,7 +64,7 @@ const course = await useCourse();
 const firstLesson = await useFirstLesson();
 
 const resetError = async (error) => {
-  await navigateTo(firstLesson.path);
+  await navigateTo(firstLesson.slug);
   error.value = null;
 };
 </script>
