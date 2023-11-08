@@ -17,17 +17,17 @@
         <div
           class="space-y-1 mb-4 flex flex-col"
           v-for="chapter in course.chapters"
-          :key="chapter.slug"
+          :key="chapter.path"
         >
           <h4>{{ chapter.title }}</h4>
           <NuxtLink
             v-for="(lesson, index) in chapter.lessons"
-            :key="lesson.slug"
+            :key="lesson.path"
             class="flex flex-row space-x-1 no-underline prose-sm font-normal py-1 px-4 -mx-4"
-            :to="lesson.slug"
+            :to="lesson.path"
             :class="{
-              'text-blue-500': lesson.slug === $route.fullPath,
-              'text-gray-600': lesson.slug !== $route.fullPath,
+              'text-blue-500': lesson.path === $route.fullPath,
+              'text-gray-600': lesson.path !== $route.fullPath,
             }"
           >
             <span class="text-gray-500">{{ index + 1 }}.</span>
@@ -64,7 +64,7 @@ const course = await useCourse();
 const firstLesson = await useFirstLesson();
 
 const resetError = async (error) => {
-  await navigateTo(firstLesson.slug);
+  await navigateTo(firstLesson.path);
   error.value = null;
 };
 </script>

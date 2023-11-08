@@ -12,18 +12,19 @@
       @input="() => $emit('update:modelValue', !modelValue)"
       class="hidden"
     />
-    {{ modelValue ? 'Completed!' : 'Mark as complete' }}
+    {{ modelValue ? "Completed!" : "Mark as complete" }}
   </label>
 </template>
 
 <script setup>
 defineProps({
   modelValue: {
-    type: Boolean,
+    type: [Boolean, Number],
     default: false,
   },
 });
-defineEmits(['update:modelValue']);
+
+defineEmits(["update:modelValue"]);
 </script>
 
 <style scoped>
