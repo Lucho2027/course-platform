@@ -30,7 +30,6 @@ export const useCourseProgress = defineStore("courseProgress", () => {
         0
       );
     }, []);
-    console.log("@#$@#$@#$@#$@#$@#$@#", chapters);
 
     const totalLessons = Object.values(progress.value).reduce(
       (number, chapter) => {
@@ -38,7 +37,6 @@ export const useCourseProgress = defineStore("courseProgress", () => {
       },
       0
     );
-    console.log("totaLessons", totalLessons);
 
     const totalCompletedLessons = Object.values(progress.value).reduce(
       (number, chapter) => {
@@ -58,7 +56,6 @@ export const useCourseProgress = defineStore("courseProgress", () => {
       course,
     };
   });
-  console.log("percentageComplete #$##########", percentageCompleted);
   // Toggle the progress of a lesson based on chapter slug and lesson slug
   const toggleComplete = async (chapter: string, lesson: string) => {
     // If there's no user we can't update the progress
