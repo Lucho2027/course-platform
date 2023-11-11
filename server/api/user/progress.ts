@@ -1,81 +1,112 @@
-import { PrismaClient } from "@prisma/client";
-import protectRoute from "~/server/utils/protectRoute";
-import { ChapterOutline, LessonOutline } from "../course/meta.get";
-import { CourseProgress, ChapterProgress } from "~/types/course";
+import { defineStore } from "pinia";
+import { CourseProgress } from "~/types/course";
 
-const prisma = new PrismaClient();
+export const useCourseProgress = defineStore("courseProgress", () => {
+  // Initialize progress from local storage
+  const progress = ref<CourseProgress>({});
+  const initialized = ref(false);
 
-export default defineEventHandler(async (event) => {
-  // Throw a 401 if there is no user logged in.
-  protectRoute(event);
+  async function initialize() {
+    // If the course has already been initialized, return
+    if (initialized.value) return;
+    initialized.value = true;
 
-  // Get user email from the supabase user if there is one.
-  const {
-    user: { email: userEmail },
-  } = event.context;
+    const { data: userProgress } = await useFetch<CourseProgress>(
+      "/api/user/progress",
+      { headers: useRequestHeaders(["cookie"]) }
+    );
 
-  // Get the progress from the DB
-  const userProgress = await prisma.lessonProgress.findMany({
-    where: {
-      userEmail,
-      // We only want to get the progress for the first course right now
-      Lesson: {
-        Chapter: {
-          Course: {
-            id: 1,
-          },
-        },
-      },
-    },
-    select: {
-      completed: true,
-      Lesson: {
-        select: {
-          slug: true,
-          Chapter: {
-            select: {
-              slug: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  // Get course outline from meta endpoint
-  const courseOutline = await $fetch("/api/course/meta");
-
-  if (!courseOutline) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Course outline not found",
-    });
+    // Update progress value
+    if (userProgress.value) {
+      progress.value = userProgress.value;
+    }
   }
 
-  // Use the course outline and user progress to create a nested object
-  // with the progress for each lesson
-  const progress = courseOutline.chapters.reduce(
-    (courseProgress: CourseProgress, chapter: ChapterOutline) => {
-      // Collect the progress for each chapter in the course
-      courseProgress[chapter.slug] = chapter.lessons.reduce(
-        (chapterProgress: ChapterProgress, lesson: LessonOutline) => {
-          // Collect the progress for each lesson in the chapter
-          chapterProgress[lesson.slug] =
-            userProgress.find(
-              (progress) =>
-                progress.Lesson.slug === lesson.slug &&
-                progress.Lesson.Chapter.slug === chapter.slug
-            )?.completed || false;
-
-          return chapterProgress;
-        },
-        {}
+  const percentageCompleted = computed(() => {
+    const chapters = Object.values(progress.value).map((chapter) => {
+      const lessons = Object.values(chapter);
+      const completedLessons = lessons.filter((lesson) => lesson);
+      return Number((completedLessons.length / lessons.length) * 100).toFixed(
+        0
       );
+    }, []);
+    console.log("@#$@#$@#$@#$@#$@#$@#", chapters);
 
-      return courseProgress;
-    },
-    {}
-  );
+    const totalLessons = Object.values(progress.value).reduce(
+      (number, chapter) => {
+        return number + Object.values(chapter).length;
+      },
+      0
+    );
+    console.log("totaLessons", totalLessons);
 
-  return progress;
+    const totalCompletedLessons = Object.values(progress.value).reduce(
+      (number, chapter) => {
+        return (
+          number + Object.values(chapter).filter((lesson) => lesson).length
+        );
+      },
+      0
+    );
+
+    const course = Number((totalCompletedLessons / totalLessons) * 100).toFixed(
+      0
+    );
+
+    return {
+      chapters,
+      course,
+    };
+  });
+  console.log("percentageComplete #$##########", percentageCompleted);
+  // Toggle the progress of a lesson based on chapter slug and lesson slug
+  const toggleComplete = async (chapter: string, lesson: string) => {
+    // If there's no user we can't update the progress
+    const user = useSupabaseUser();
+    if (!user.value) return;
+
+    // Grab chapter and lesson slugs from the route if they're not provided
+    if (!chapter || !lesson) {
+      const {
+        params: { chapterSlug, lessonSlug },
+      } = useRoute();
+      chapter = chapterSlug as string;
+      lesson = lessonSlug as string;
+    }
+
+    // Get the current progress for the lesson
+    const currentProgress = progress.value[chapter]?.[lesson];
+
+    // Optimistically update the progress value in the UI
+    progress.value[chapter] = {
+      ...progress.value[chapter],
+      [lesson]: !currentProgress,
+    };
+
+    // Update the progress in the DB
+    try {
+      await $fetch(`/api/course/chapter/${chapter}/lesson/${lesson}/progress`, {
+        method: "POST",
+        // Automatically stringified by ofetch
+        body: {
+          completed: !currentProgress,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      // If the request failed, revert the progress value
+      progress.value[chapter] = {
+        ...progress.value[chapter],
+        [lesson]: currentProgress,
+      };
+    }
+  };
+
+  return {
+    initialize,
+    progress,
+    toggleComplete,
+    percentageCompleted,
+  };
 });
