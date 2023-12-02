@@ -30,8 +30,9 @@
   <Section title="Screenshots">
     <div class="flex flex-row flex-wrap relative my-12">
       <img
-        v-for="image in screenshots"
+        v-for="(image, idx) in screenshots"
         :src="image"
+        :key="idx"
         class="w-1/2 rounded-xl shadow-xl border-4 border-slate-200 even:rotate-2 even:hover:-rotate-2 odd:-rotate-2 odd:hover:rotate-2 transition"
       />
     </div>
@@ -73,6 +74,8 @@ import screen2 from "~/assets/images/screen2.png";
 import screen3 from "~/assets/images/screen3.png";
 import screen4 from "~/assets/images/screen4.png";
 import screen5 from "~/assets/images/screen5.png";
+
+const config = useRuntimeConfig();
 
 const course = await useCourse();
 const learningOutcomes = [
