@@ -18,8 +18,9 @@ const user = useSupabaseUser();
 const { auth } = useSupabaseClient();
 
 const logout = async () => {
+  console.log("am I being clicked?", await auth.signOut());
   const { error } = await auth.signOut();
-
+  console.log("MOMMMAAAWUWUWUWUW", error);
   if (error) {
     console.error(error);
     return;
@@ -27,16 +28,16 @@ const logout = async () => {
 
   // // The Nuxt Supabase auth *should* be doing this
   // // for us, but it isn't for some reason.
-  // try {
-  //   await $fetch("/api/_supabase/session", {
-  //     method: "POST",
-  //     body: { event: "SIGNED_OUT", session: null },
-  //   });
-  //   user.value = null;
-  // } catch (e) {
-  //   console.error(error);
-  // }
-
+  try {
+    await $fetch("/api/_supabase/session", {
+      method: "POST",
+      body: { event: "SIGNED_OUT", session: null },
+    });
+    user.value = null;
+  } catch (e) {
+    console.error(error);
+  }
+  console.log("henlo?????");
   await navigateTo("/login");
 };
 
